@@ -25,7 +25,7 @@ def render(scale):
             y = ((SIZE_Y / 2 - y0) / SIZE_Y * 2 - OFF_Y / scale) * scale
 
             for n, (a, b) in enumerate(mandel_sequence(x, y)):
-                if a**2 + b**2 >= 4 or n == MAX_ITER:
+                if n == MAX_ITER or (a < -2 or a > 2 or b < -2 or b > 2):
                     screen.matrix[y0][x0] = screen.get_char(n / MAX_ITER)
                     screen.matrix[SIZE_Y - y0 - 1][x0] = screen.get_char(n / MAX_ITER)
                     break
