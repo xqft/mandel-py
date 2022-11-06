@@ -1,13 +1,17 @@
-from raster.raster import Screen
+import math
+from numba import njit
+
+import raster as rr
 
 SIZE_X = 400
 SIZE_Y = 150
 
-OFF_X = 1.5
+OFF_X = 0
 OFF_Y = 0
 
-MAX_ITER = 100
+MAX_ITER = 10000
 
+@njit
 def mandel_sequence(ca, cb):
     a, b = 0, 0
     while True:
@@ -16,22 +20,22 @@ def mandel_sequence(ca, cb):
         a = a**2 - b**2 + ca
         b = 2*a*b + cb
 
-screen = Screen(SIZE_X, SIZE_Y)
-
-def render(scale):
+@njit
+def render(scale, off):
+    matrix = rr.init_screen(SIZE_X, SIZE_Y)
     for x0 in range(SIZE_X):
         for y0 in range(SIZE_Y // 2):
-            x = (x0 / SIZE_X * 2 - 1) * scale - OFF_X
+            x = (x0 / SIZE_X * 2 - 1) * scale + OFF_X
             y = (1 - y0 / SIZE_Y * 2) * scale - OFF_Y
 
             for n, (a, b) in enumerate(mandel_sequence(x, y)):
                 if n == MAX_ITER or (a < -2 or a > 2 or b < -2 or b > 2):
-                    screen.matrix[y0][x0] = Screen.get_char(n / MAX_ITER)
-                    screen.matrix[SIZE_Y - y0 - 1][x0] = Screen.get_char(n / MAX_ITER)
+                    matrix[y0][x0] = rr.get_char(math.sin(n))
+                    matrix[SIZE_Y - y0 - 1][x0] = rr.get_char(math.sin(n))
                     break
-    print(screen)
+    return matrix
 
 s = 1
 while True:
-    render(1/s**2) 
-    s += 1
+    rr.print_screen(render(1/s))
+    s = 1/2
