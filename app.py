@@ -21,8 +21,8 @@ screen = Screen(SIZE_X, SIZE_Y)
 def render(scale):
     for x0 in range(SIZE_X):
         for y0 in range(SIZE_Y // 2):
-            x = ((x0 - SIZE_X / 2) / SIZE_X * 2 - OFF_X / scale) * scale
-            y = ((SIZE_Y / 2 - y0) / SIZE_Y * 2 - OFF_Y / scale) * scale
+            x = (x0 / SIZE_X * 2 - 1) * scale - OFF_X
+            y = (1 - y0 / SIZE_Y * 2) * scale - OFF_Y
 
             for n, (a, b) in enumerate(mandel_sequence(x, y)):
                 if n == MAX_ITER or (a < -2 or a > 2 or b < -2 or b > 2):
