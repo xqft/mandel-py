@@ -1,41 +1,34 @@
-import math
 from numba import njit
 
 import raster as rr
+import mandel as ml
 
-SIZE_X = 400
-SIZE_Y = 150
+import time
 
-OFF_X = 0
-OFF_Y = 0
+(OFF_X, OFF_Y) = (-0.34853774148008254, -0.6065922085831237)
 
-MAX_ITER = 10000
+def limit_fps(fps):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start = time.time()
 
-@njit
-def mandel_sequence(ca, cb):
-    a, b = 0, 0
-    while True:
-        yield a, b
-        # (a+bi)^2 = a^2 - b^2 + 2abi
-        a = a**2 - b**2 + ca
-        b = 2*a*b + cb
+            func(*args, **kwargs)
 
-@njit
-def render(scale, off):
-    matrix = rr.init_screen(SIZE_X, SIZE_Y)
-    for x0 in range(SIZE_X):
-        for y0 in range(SIZE_Y // 2):
-            x = (x0 / SIZE_X * 2 - 1) * scale + OFF_X
-            y = (1 - y0 / SIZE_Y * 2) * scale - OFF_Y
+            end = time.time()
+            if (end - start < 1/fps):
+                time.sleep(1/fps - end + start)
+        return wrapper
+    return decorator
 
-            for n, (a, b) in enumerate(mandel_sequence(x, y)):
-                if n == MAX_ITER or (a < -2 or a > 2 or b < -2 or b > 2):
-                    matrix[y0][x0] = rr.get_char(math.sin(n))
-                    matrix[SIZE_Y - y0 - 1][x0] = rr.get_char(math.sin(n))
-                    break
-    return matrix
+@limit_fps(10)
+def loop(s):
+    matrix = ml.gen_mandel_matrix(  max_iter = 1000,
+                                    size_x = 400, size_y = 150,
+                                    scale = 1/s**2,
+                                    off_x = OFF_X, off_y = OFF_Y)
+    rr.print_screen(matrix)
 
 s = 1
 while True:
-    rr.print_screen(render(1/s))
-    s = 1/2
+    loop(s)
+    s += 1
